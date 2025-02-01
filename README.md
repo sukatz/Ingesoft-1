@@ -24,4 +24,4 @@ Twordle es un juego web sencillo inspirado en el popular juego de palabras **Wor
 ### Backend
 
 - Node.js
-- MongoDB
+- Firebase
