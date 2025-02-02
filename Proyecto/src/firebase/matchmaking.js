@@ -1,13 +1,9 @@
 import {
-    collection,     // Para referenciar una colección
-    addDoc,        // Para añadir documentos
-    getDocs,       // Para obtener documentos
-    updateDoc,     // Para actualizar documentos
-    deleteDoc,     // Para eliminar documentos
-    doc,           // Para referenciar un documento específico
-    query,         // Para hacer consultas
+    collection,
+    addDoc,
+    query,
     where,
-    onSnapshot          // Para filtrar consultas
+    onSnapshot
 } from 'firebase/firestore';
 
 import { db } from './config';
@@ -28,25 +24,27 @@ export const addUserToQueue = async (nickname) => {
     }
 }
 
-export const checkForWaitingPlayer = (callback) => {
+export const checkForWaitingUser = (userQueueId, callback) => {
     try {
         const queueCollection = collection(db, 'queue');
-        const q = query(queueCollection, where('queue_status', '==', 'waiting'));
+        
+        const q = query(
+            queueCollection,
+            where('queue_status', '==', 'waiting'),
+            where('__name__', '!=', userQueueId) 
+        );
 
-        // Usamos onSnapshot para recibir actualizaciones en tiempo real
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             if (!querySnapshot.empty) {
-                // Si hay un jugador esperando, obtenemos el primer jugador
-                const waitingPlayerDocumentId = querySnapshot.docs[0].id;
-                console.log('Partida encontrada con ID:', waitingPlayerDocumentId);
-                callback(waitingPlayerDocumentId); // Llamamos a la función de callback con el ID del jugador
+                const waitingUserDocumentId = querySnapshot.docs[0].id;
+                console.log('Partida encontrada con ID:', waitingUserDocumentId);
+                callback(waitingUserDocumentId);
             } else {
                 console.log('No hay jugadores esperando.');
-                callback(null); // No hay jugadores esperando
+                callback(null);
             }
         });
 
-        // El unsubscribe es una función para dejar de escuchar los cambios
         return unsubscribe;
     } catch (error) {
         console.error('Error al verificar si hay un jugador esperando:', error);

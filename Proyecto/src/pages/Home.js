@@ -1,56 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkForWaitingPlayer, addUserToQueue } from '../firebase/matchmaking';
+import useQueue from '../hooks/useMatchmaking';
 import styles from "./TextField.module.css";
 
 function TextField() {
     const [nickname, setNickname] = useState('');
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();  // Para redirigir a otras páginas
+    const navigate = useNavigate();
+    const { status, error, waitingPlayerId, addToQueueAndCheck, isProcessing } = useQueue(nickname);
 
     const maxLength = 20;
 
     const handleChange = (e) => {
-        const value = e.target.value.replace(/[^A-Za-z]/g, '');  // Solo letras
+        const value = e.target.value.replace(/[^A-Za-z]/g, '');
         if (value.length <= maxLength) {
-            setNickname(value);  // Actualiza el estado de nickname
+            setNickname(value);
         }
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();  // Evita el comportamiento por defecto (recarga de página)
-
-        // 1. Verificar el valor de nickname antes de enviar
-        console.log('Nickname antes de enviar:', nickname);  // Verifica qué valor tiene nickname
-
-        if (!nickname) {
-            console.error('El nickname no puede estar vacío o undefined');
-            return;
-        }
-
-        setLoading(true);  // Activa el estado de carga
-        console.log('Intentando agregar a la cola...');  // Marca el inicio del proceso
-
+        e.preventDefault();
+    
+        if (isProcessing) return;
+    
+        setLoading(true);
+        console.log('Intentando agregar a la cola...');
+    
         try {
-            // 2. Llamada a la función para agregar el usuario a la cola
-            const userId = await addUserToQueue(nickname);
-            
-            // 3. Verificar si obtuvimos un ID de usuario y loguearlo
-            console.log('ID del usuario agregado:', userId);  // Ver el ID generado
-
-            if (userId) {
-                // 4. Redirigir a la página de espera si todo fue bien
-                
-            } else {
-                console.error('No se pudo agregar el usuario a la cola');
+            await addToQueueAndCheck();
+    
+            if (status === 'matched' && waitingPlayerId) {
+                console.log('Emparejando con jugador ID:', waitingPlayerId);
+                navigate(`/game/${waitingPlayerId}`);
+            } else if (status === 'waiting') {
+                console.log('Esperando a otro jugador...');
+            } else if (status === 'error') {
+                console.error('Error al agregar a la cola:', error);
             }
-        } catch (error) {
-            // 5. Capturar y loguear el error si algo sale mal
-            console.error('Error al manejar el usuario:', error);  // Ver detalles del error
+        } catch (err) {
+            console.error('Error inesperado:', err);
         } finally {
-            // 6. Desactivar el estado de carga, independientemente de lo que suceda
-            setLoading(false);  // Desactiva el estado de carga
-            console.log('Proceso de cola terminado. Estado de carga desactivado.');
+            setLoading(false);
         }
     };
 
