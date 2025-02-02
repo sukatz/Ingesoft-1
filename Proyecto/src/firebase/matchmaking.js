@@ -20,6 +20,7 @@ export const addUserToQueue = async (nickname) => {
             queue_status: 'waiting',
             elapsed_time: new Date()
         });
+        console.log('Usuario agregado a la cola:', docRef.id);
         return docRef.id;
     } catch (error) {
         console.error('Error al agregar usuario a la cola:', error);
