@@ -1,18 +1,29 @@
 div {
     display: flex;
     flex-direction: column;
-    justify-content: center; 
-    align-items: center;     
-    height: 100vh;           
-    margin: 0;               
-    gap: 10px;               
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    gap: 10px;
+    position: relative;
+}
+
+.logo {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: 550px;
 }
 
 .form {
     display: flex;
-    flex-direction: column; 
-    align-items: center;  
+    flex-direction: column;
+    align-items: center;
     gap: 10px;
+    padding-top: 2px;
 }
 
 .nicknameField {
@@ -65,12 +76,6 @@ div {
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
-}
-
-.spinner p {
-    margin-top: 10px;
-    color: #3498db;
-    font-size: 1.2em;
 }
 
 @keyframes spin {

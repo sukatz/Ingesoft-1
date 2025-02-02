@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useQueue from '../hooks/useMatchmaking';
 import styles from "./Home.module.css";
+import logo from "../assets/logo.png";
 
 function TextField() {
     const [nickname, setNickname] = useState('');
@@ -42,6 +43,9 @@ function TextField() {
 
     return (
         <div className={styles.container}>
+
+            <img className={styles.logo} src={logo} alt="Logo" />
+
             <form className={styles.form} onSubmit={handleSubmit}>
                 <input
                     className={styles.nicknameField}
