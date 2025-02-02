@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useQueue from '../hooks/useMatchmaking';
-import styles from "./TextField.module.css";
+import styles from "./Home.module.css";
 
 function TextField() {
     const [nickname, setNickname] = useState('');
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { status, error, waitingPlayerId, addToQueueAndCheck, isProcessing } = useQueue(nickname);
 
@@ -20,10 +19,9 @@ function TextField() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         if (isProcessing) return;
-    
-        setLoading(true);
+
         console.log('Intentando agregar a la cola...');
     
         try {
@@ -39,13 +37,11 @@ function TextField() {
             }
         } catch (err) {
             console.error('Error inesperado:', err);
-        } finally {
-            setLoading(false);
         }
     };
 
     return (
-        <div>
+        <div className={styles.container}>
             <form className={styles.form} onSubmit={handleSubmit}>
                 <input
                     className={styles.nicknameField}
@@ -59,10 +55,17 @@ function TextField() {
                 <input
                     className={styles.searchButton}
                     type="submit"
-                    value={loading ? 'Cargando...' : 'Buscar Partida'}
-                    disabled={nickname.length === 0 || loading}
+                    value={isProcessing ? 'Buscando...' : 'Buscar Partida'}
+                    disabled={nickname.length === 0 || isProcessing}
                 />
             </form>
+        
+            {isProcessing && (
+                <div className={styles.spinner}>
+                    <div className={styles.spinnerCircle}></div>
+                    
+                </div>
+            )}
         </div>
     );
 }

@@ -4,12 +4,14 @@ import React from 'react';
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
+import Searching from './pages/Searching';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />  {/* Esta ruta hace que Home sea la página principal */}
+        <Route path="/" element={<Home />} />
+        <Route path="/searching" element={<Searching />} />
       </Routes>
     </BrowserRouter>
   );
