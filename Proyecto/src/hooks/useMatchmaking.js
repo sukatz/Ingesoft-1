@@ -1,36 +1,47 @@
 import { useState } from 'react';
-import { checkForWaitingPlayer, addUserToQueue } from '../firebase/matchmaking';
+import { addUserToQueue, checkForWaitingUser } from '../firebase/matchmaking';
 
-
-
-export const useQueue = () => {
-    const [loading, setLoading] = useState(false);
+const useQueue = (nickname) => {
+    const [status, setStatus] = useState('idle'); // 'idle', 'waiting', 'matched', 'error'
     const [error, setError] = useState(null);
+    const [waitingPlayerId, setWaitingPlayerId] = useState(null);
 
-    const checkAndAddUser = async (nickname) => {
-        setLoading(true);
-        setError(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
+    const addToQueueAndCheck = async () => {
         try {
-            // Verificamos si ya hay un jugador esperando en la cola
-            const waitingPlayerDocumentId = await checkForWaitingPlayer();
+            setIsProcessing(true);
+            setStatus('waiting');
+            setError(null);
 
-            if (waitingPlayerDocumentId) {
-                // Si hay un jugador esperando, lo emparejamos
-                console.log('Partida encontrada con el jugador ID:', waitingPlayerDocumentId);
-                return { success: true, queueDocumentId: waitingPlayerDocumentId };
-            } else {
-                // Si no hay jugadores esperando, agregamos al nuevo jugador a la cola
-                const newQueueDocumentId = await addUserToQueue(nickname);
-                return { success: true, queueDocumentId: newQueueDocumentId };
+            const userId = await addUserToQueue(nickname);
+            if (!userId) {
+                setStatus('error');
+                setError('Error al agregar el usuario a la cola');
+                return;
             }
+
+            console.log('Jugador agregado a la cola con ID:', userId);
+
+            checkForWaitingUser(userId, (foundPlayerId) => {
+                if (foundPlayerId) {
+                    setStatus('matched');
+                    setWaitingPlayerId(foundPlayerId);
+                } else {
+                
+                    setStatus('waiting');
+                }
+            });
+
         } catch (err) {
-            setError('Ocurrió un error al procesar la solicitud.');
-            return { success: false, error: err };
+            setError(err.message);
+            setStatus('error');
         } finally {
-            setLoading(false);
+            
         }
     };
 
-    return { loading, error, checkAndAddUser };
+    return { status, error, waitingPlayerId, addToQueueAndCheck, isProcessing };
 };
+
+export default useQueue;
