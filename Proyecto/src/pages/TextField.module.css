@@ -1,0 +1,59 @@
+div {
+    display: flex;
+    justify-content: center; /* Centrado horizontal */
+    align-items: center;     /* Centrado vertical */
+    height: 100vh;           /* Ocupa toda la altura de la ventana */
+    margin: 0;               /* Elimina márgenes predeterminados */
+}
+.form {
+    display: flex;
+    flex-direction: column; /* Centrado horizontal */
+    align-items: center;     /* Centrado vertical */
+    /*height: 100vh;*/          /* O cualquier altura del contenedor */
+    gap: 10px;
+}
+
+.nicknameField {
+    height: 3em;
+    width: 300px;
+
+    background-color: #111;
+
+    border: 1px solid #222;
+    border-radius: 16px;
+    
+    font-size: 1.2em;
+    text-align: center;
+
+    color: #fff;
+}
+
+.nicknameField:focus {
+    border-color: rgb(64, 64, 201);
+    outline: none;
+    box-shadow: 0 0 5px rgb(64, 64, 201);
+}
+
+.searchButton {
+    cursor: pointer;
+    
+    height: 3em;
+    width: 300px;
+
+    background-color: rgb(64, 64, 201);
+
+    border: 1px solid rgb(64, 64, 201);
+    border-radius: 16px;
+    
+    font-size: 1.2em;
+    text-align: center;
+
+    color: #fff;
+}
+
+.searchButton:disabled {
+    border-color: #22222244;
+    background-color: #11111144;
+    color: #22222244;
+    cursor: not-allowed;
+}
