@@ -1,47 +1,42 @@
-import { useState } from 'react';
-import { addUserToQueue, checkForWaitingUser } from '../firebase/matchmaking';
+import { useState, useEffect } from 'react';
+import { addUserToMatch, checkForMatch } from '../firebase/matchmaking';
 
-const useQueue = (nickname) => {
-    const [status, setStatus] = useState('idle'); // 'idle', 'waiting', 'matched', 'error'
+const useMatchmaking = (shouldSearch, nickname) => {
+    const [matchId, setMatchId] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState(null);
-    const [waitingPlayerId, setWaitingPlayerId] = useState(null);
 
-    const [isProcessing, setIsProcessing] = useState(false);
-
-    const addToQueueAndCheck = async () => {
-        try {
-            setIsProcessing(true);
-            setStatus('waiting');
-            setError(null);
-
-            const userId = await addUserToQueue(nickname);
-            if (!userId) {
-                setStatus('error');
-                setError('Error al agregar el usuario a la cola');
-                return;
-            }
-
-            console.log('Jugador agregado a la cola con ID:', userId);
-
-            checkForWaitingUser(userId, (foundPlayerId) => {
-                if (foundPlayerId) {
-                    setStatus('matched');
-                    setWaitingPlayerId(foundPlayerId);
-                } else {
-                
-                    setStatus('waiting');
-                }
-            });
-
-        } catch (err) {
-            setError(err.message);
-            setStatus('error');
-        } finally {
-            
+    useEffect(() => {
+        if (!shouldSearch || !nickname) {
+            setIsSearching(false);
+            return;
         }
-    };
 
-    return { status, error, waitingPlayerId, addToQueueAndCheck, isProcessing };
+        setIsSearching(true);
+
+        const findOrCreateMatch = async () => {
+            try {
+                const matchId = await checkForMatch(nickname);
+
+                if (matchId) {
+                    setMatchId(matchId);
+                    return;
+                }
+
+                const newMatchId = await addUserToMatch(nickname);
+                setMatchId(newMatchId);
+            } catch (error) {
+                console.error('Error en matchmaking:', error);
+                setError(error);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        findOrCreateMatch();
+    }, [shouldSearch, nickname]);
+
+    return { matchId, isSearching, error };
 };
 
-export default useQueue;
+export default useMatchmaking;
