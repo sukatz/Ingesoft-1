@@ -1,77 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useQueue from '../hooks/useMatchmaking';
-import styles from "./Home.module.css";
-import logo from "../assets/logo.png";
+import useMatchmaking from '../hooks/useMatchmaking';
+import styles from './Home.module.css';
+import logo from '../assets/logo.png';
 
-function TextField() {
-    const [nickname, setNickname] = useState('');
-    const navigate = useNavigate();
-    const { status, error, waitingPlayerId, addToQueueAndCheck, isProcessing } = useQueue(nickname);
-
+const SearchForm = ({ nickname, isSearching, onNicknameChange, onSearch }) => {
     const maxLength = 20;
 
-    const handleChange = (e) => {
+    return (
+        <form className={styles.form} onSubmit={onSearch}>
+            <input
+                className={styles.nicknameField}
+                type="text"
+                placeholder="Ingresa tu nickname"
+                value={nickname}
+                onChange={onNicknameChange}
+                maxLength={maxLength}
+                autoFocus
+                disabled={isSearching}
+            />
+            <input
+                className={styles.searchButton}
+                type="submit"
+                value="Buscar Partida"
+                disabled={nickname.trim().length === 0 || isSearching}
+            />
+        </form>
+    );
+};
+
+const LoadingSpinner = () => (
+    <div className={styles.spinner}>
+        <div className={styles.spinnerCircle}></div>
+    </div>
+);
+
+function Home() {
+    const [nickname, setNickname] = useState('');
+    const [shouldSearch, setShouldSearch] = useState(false);
+    const navigate = useNavigate();
+
+    const { matchId, isSearching, error } = useMatchmaking(shouldSearch, nickname);
+
+    const handleNicknameChange = (e) => {
         const value = e.target.value.replace(/[^A-Za-z]/g, '');
-        if (value.length <= maxLength) {
+        if (value.length <= 20) {
             setNickname(value);
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSearch = (e) => {
         e.preventDefault();
-
-        if (isProcessing) return;
-
-        console.log('Intentando agregar a la cola...');
-    
-        try {
-            await addToQueueAndCheck();
-    
-            if (status === 'matched' && waitingPlayerId) {
-                console.log('Emparejando con jugador ID:', waitingPlayerId);
-                navigate(`/game/${waitingPlayerId}`);
-            } else if (status === 'waiting') {
-                console.log('Esperando a otro jugador...');
-            } else if (status === 'error') {
-                console.error('Error al agregar a la cola:', error);
-            }
-        } catch (err) {
-            console.error('Error inesperado:', err);
+        if (nickname.trim().length > 0) {
+            setShouldSearch(true);
         }
     };
 
+    useEffect(() => {
+        if (matchId) {
+            navigate(`/game/${matchId}`);
+        }
+    }, [matchId, navigate]);
+
     return (
         <div className={styles.container}>
-
             <img className={styles.logo} src={logo} alt="Logo" />
 
-            <form className={styles.form} onSubmit={handleSubmit}>
-                <input
-                    className={styles.nicknameField}
-                    type="text"
-                    placeholder="Ingresa tu nickname"
-                    value={nickname}
-                    onChange={handleChange}
-                    maxLength={maxLength}
-                    autoFocus
-                />
-                <input
-                    className={styles.searchButton}
-                    type="submit"
-                    value={isProcessing ? 'Buscando...' : 'Buscar Partida'}
-                    disabled={nickname.length === 0 || isProcessing}
-                />
-            </form>
-        
-            {isProcessing && (
-                <div className={styles.spinner}>
-                    <div className={styles.spinnerCircle}></div>
-                    
-                </div>
-            )}
+            <SearchForm
+                nickname={nickname}
+                isSearching={isSearching}
+                onNicknameChange={handleNicknameChange}
+                onSearch={handleSearch}
+            />
+
+            {isSearching && <LoadingSpinner />}
+
+            {error && <p className={styles.error}>Error: {error}</p>}
         </div>
     );
 }
 
-export default TextField;
+export default Home;

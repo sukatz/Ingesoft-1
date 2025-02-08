@@ -1,53 +1,100 @@
 import {
     collection,
-    addDoc,
     query,
     where,
-    onSnapshot
+    getDocs,
+    runTransaction,
+    doc,
+    serverTimestamp
 } from 'firebase/firestore';
 
 import { db } from './config';
 
-export const addUserToQueue = async (nickname) => {
+export const checkForMatch = async (userNickname) => {
     try {
-        const queueCollection = collection(db, 'queue');
-        const docRef = await addDoc(queueCollection, {
-            nickname: nickname,
-            queue_status: 'waiting',
-            elapsed_time: new Date()
-        });
-        console.log('Usuario agregado a la cola:', docRef.id);
-        return docRef.id;
-    } catch (error) {
-        console.error('Error al agregar usuario a la cola:', error);
-        return null;
-    }
-}
+        const matchCollection = collection(db, 'match');
 
-export const checkForWaitingUser = (userQueueId, callback) => {
-    try {
-        const queueCollection = collection(db, 'queue');
-        
         const q = query(
-            queueCollection,
-            where('queue_status', '==', 'waiting'),
-            where('__name__', '!=', userQueueId) 
+            matchCollection,
+            where('match_status', '==', 'waiting'),
+            where('player_1', '!=', userNickname)
         );
 
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const waitingMatch = querySnapshot.docs[0];
+            const matchId = waitingMatch.id;
+
+            await runTransaction(db, async (transaction) => {
+                const matchRef = doc(db, 'match', matchId);
+                const matchDoc = await transaction.get(matchRef);
+
+                if (matchDoc.exists() && matchDoc.data().player_2 === '') {
+                    transaction.update(matchRef, {
+                        player_2: userNickname,
+                        match_status: 'ongoing'
+                    });
+
+                    console.log('Partida encontrada y actualizada:', matchId);
+                    return matchId;
+                }
+            });
+
+            return matchId;
+        }
+
+        console.log('No hay partidas esperando.');
+        return null;
+    } catch (error) {
+        console.error('Error al verificar si hay una partida esperando:', error);
+        return null;
+    }
+};
+
+export const addUserToMatch = async (userNickname) => {
+    try {
+        const matchCollection = collection(db, 'match');
+
+        const matchId = await runTransaction(db, async (transaction) => {
+            const q = query(
+                matchCollection,
+                where('match_status', '==', 'waiting'),
+                where('player_1', '!=', userNickname)
+            );
+
+            const querySnapshot = await getDocs(q);
+
             if (!querySnapshot.empty) {
-                const waitingUserDocumentId = querySnapshot.docs[0].id;
-                console.log('Partida encontrada con ID:', waitingUserDocumentId);
-                callback(waitingUserDocumentId);
-            } else {
-                console.log('No hay jugadores esperando.');
-                callback(null);
+                const waitingMatch = querySnapshot.docs[0];
+                const matchId = waitingMatch.id;
+
+                if (waitingMatch.data().player_2 === '') {
+                    transaction.update(waitingMatch.ref, {
+                        player_2: userNickname,
+                        match_status: 'ongoing'
+                    });
+
+                    console.log('Usuario unido a la partida existente:', matchId);
+                    return matchId;
+                }
             }
+
+            const newMatchRef = doc(matchCollection);
+            transaction.set(newMatchRef, {
+                player_1: userNickname,
+                player_2: '',
+                match_status: 'waiting',
+                elapsed_time: serverTimestamp()
+            });
+
+            console.log('Nueva partida creada:', newMatchRef.id);
+            return newMatchRef.id;
         });
 
-        return unsubscribe;
+        return matchId;
     } catch (error) {
-        console.error('Error al verificar si hay un jugador esperando:', error);
+        console.error('Error al agregar usuario a la partida:', error);
         return null;
     }
 };
