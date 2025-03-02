@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './Board.module.css';
 
 const Board = ({ checkWord, enemyColors, wordLength }) => {
@@ -9,6 +9,16 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
     const [isWordComplete, setIsWordComplete] = useState(false);
     const [isEditing, setIsEditing] = useState(true);
     const [playerAttempts, setPlayerAttempts] = useState([]);
+
+    // 🔹 Ref para el contenedor principal
+    const boardRef = useRef(null);
+
+    // 🔹 Enfocar automáticamente el tablero al cargar
+    useEffect(() => {
+        if (boardRef.current) {
+            boardRef.current.focus();
+        }
+    }, []);
 
     const handleKeyPress = (event) => {
         const rowIndex = currentAttempt;
@@ -70,11 +80,7 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
         setInputWords(newWords);
     };
 
-    // En el componente Board, modifica la función getBackgroundClass o renderRow
-
-    // Modifica la función getBackgroundClass para manejar prioridades
     const getBackgroundClass = (playerCode, enemyCode) => {
-        // Si existe un código del jugador (incluso si es 0/gris), usar ese
         if (playerCode !== null && playerCode !== undefined) {
             switch (playerCode) {
                 case 0: return styles.gray;
@@ -83,52 +89,41 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
                 default: return styles.empty;
             }
         }
-        
-        // Si no hay código del jugador, usar el del enemigo
         if (enemyCode !== null && enemyCode !== undefined) {
             switch (enemyCode) {
-                case 0: return styles.enemyGray; // Puedes usar clases distintas para el enemigo
+                case 0: return styles.enemyGray;
                 case 1: return styles.enemyYellow;
                 case 2: return styles.enemyGreen;
                 default: return styles.empty;
             }
         }
-        
-        // Si no hay ningún código, celda vacía
         return styles.empty;
     };
-    
 
     const renderRow = (rowIndex) => {
-        // Verifica si el jugador ha intentado esta fila
         if (playerAttempts[rowIndex]) {
             const { word, colors: playerColors } = playerAttempts[rowIndex];
-            // Obtiene los colores del enemigo para esta fila
             const enemyColorsForRow = enemyColors ? enemyColors[rowIndex] : null;
-            
+
             return (
                 <div className={styles.row} key={`row-${rowIndex}`}>
                     {Array.from({ length: wordLength }).map((_, colIndex) => {
                         const letter = word[colIndex] || '';
                         const playerCode = playerColors[colIndex];
-    
-                        // Determina qué clase CSS aplicar basado en la prioridad
+
                         let colorClass = styles.empty;
-    
-                        // SIEMPRE prioriza el color del jugador si existe (incluso si es 0 - gris)
+
                         if (playerCode === 0 || playerCode === 1 || playerCode === 2) {
                             if (playerCode === 0) colorClass = styles.gray;
                             else if (playerCode === 1) colorClass = styles.yellow;
                             else if (playerCode === 2) colorClass = styles.green;
-                        } 
-                        // Solo usa el color del enemigo si no hay un color de jugador válido
-                        else if (enemyColorsForRow && enemyColorsForRow[colIndex] !== null) {
+                        } else if (enemyColorsForRow && enemyColorsForRow[colIndex] !== null) {
                             const enemyCode = enemyColorsForRow[colIndex];
                             if (enemyCode === 0) colorClass = styles.enemyGray;
                             else if (enemyCode === 1) colorClass = styles.enemyYellow;
                             else if (enemyCode === 2) colorClass = styles.enemyGreen;
                         }
-    
+
                         return (
                             <div
                                 key={`cell-${rowIndex}-${colIndex}`}
@@ -141,8 +136,7 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
                 </div>
             );
         }
-    
-        // Renderiza las filas vacías o en proceso de escritura
+
         return (
             <div className={styles.row} key={`row-${rowIndex}`}>
                 {Array.from({ length: wordLength }).map((_, colIndex) => {
@@ -150,7 +144,7 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
                     const isActive = rowIndex === currentAttempt;
                     const isCursor = isActive && colIndex === cursorPosition && isEditing;
                     const enemyStatus = enemyColors[rowIndex]?.[colIndex];
-    
+
                     return (
                         <div
                             key={`cell-${rowIndex}-${colIndex}`}
@@ -164,10 +158,10 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
             </div>
         );
     };
-    
 
     return (
         <div 
+            ref={boardRef} // 🔹 Asignamos el ref al contenedor
             className={styles.wordleContainer} 
             tabIndex={0} 
             onKeyDown={handleKeyPress}

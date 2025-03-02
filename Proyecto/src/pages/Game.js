@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import verifyWord from "../firebase/gameLogic"; 
 
 function Game() {
-    const [targetWord, setTargetWord] = useState("PAN");
+    const [targetWord, setTargetWord] = useState("REACT");
     const [enemyColors, setEnemyColors] = useState(
         Array(6).fill(Array(targetWord.length).fill(null)) // Matriz 6x3 inicial
     );
@@ -27,9 +27,9 @@ function Game() {
         const interval = setInterval(() => {
             if (attemptIndex < 6) {
                 const newColors = [
-                    Math.floor(Math.random() * 3), 
-                    Math.floor(Math.random() * 3), 
-                    Math.floor(Math.random() * 3)
+                    Math.floor(Math.random() * 5), 
+                    Math.floor(Math.random() * 5), 
+                    Math.floor(Math.random() * 5)
                 ]; // Simulación de colores
                 receiveEnemyData(newColors, attemptIndex);
                 attemptIndex++;
