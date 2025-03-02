@@ -1,49 +1,33 @@
-function verifyWord(guessWord, attempt){
-
-    const guessWordLen = guessWord.length
-
-    guessWordList = guessWord.split("")
-
-    let attemptVerification = [] 
-
-    for (let i = 0; i < guessWordLen; i++) {
-        attemptVerification.push(-1)
-            //   0 - La letra no esta
-            //   1 - Posicion incorrecta de la letra
-            //   2 - Posicion correcta
-    }
-
-    for (let i = 0; i < guessWordLen; i++) {
-        if (!guessWordList.includes(attempt[i])) {
-            attemptVerification[i] = 0;
+function verifyWord(targetWord, attempt) {
+    const wordLength = targetWord.length;
+    let targetWordArray = targetWord.split("");
+    
+    // Initialize verification array
+    let verification = Array(wordLength).fill(-1);
+    
+    // First pass: Check for exact matches (green)
+    for (let i = 0; i < wordLength; i++) {
+        if (attempt[i] === targetWordArray[i]) {
+            verification[i] = 2;
+            targetWordArray[i] = " "; // Mark as used
         }
     }
-
-    for (let i = 0; i < guessWordLen; i++) {
-        if (attempt[i] == guessWordList[i]) {
-            attemptVerification[i] = 2;
-
-            guessWordList[i] = " "
-
-            console.log(guessWordList)
-        }
-    }
-
-    for (let i = 0; i < guessWordLen; i++) {
-        if (attempt[i] != guessWord[i] && guessWord.includes(attempt[i])) {
-
-
-            if (guessWordList.filter(letter => letter === attempt[i]).length > 0) {
-
-                attemptVerification[i] = 1;
-                guessWordList[guessWordList.indexOf(attempt[i])] = " "
-
-            }
-            else {
-                attemptVerification[i] = 0;
+    
+    // Second pass: Check for letters in wrong positions (yellow) or not present (gray)
+    for (let i = 0; i < wordLength; i++) {
+        // Skip positions that were already marked green
+        if (verification[i] !== 2) {
+            const letterIndex = targetWordArray.indexOf(attempt[i]);
+            if (letterIndex !== -1) {
+                verification[i] = 1; // Letter exists but wrong position
+                targetWordArray[letterIndex] = " "; // Mark as used
+            } else {
+                verification[i] = 0; // Letter does not exist in the word
             }
         }
     }
-
-    return attemptVerification
+    
+    return verification;
 }
+
+export default verifyWord;

@@ -1,20 +1,20 @@
 import Board from '../components/Board';
 import Keyboard from "../components/Keyboard";
+import { useState } from 'react';
+
+// In Game.js, update the import:
+import verifyWord from "../firebase/gameLogic"; // Import as default export
 
 function Game() {
+    const [targetWord, setTargetWord] = useState("PAN");
+    
+    const checkWord = (attempt) => {
+        return verifyWord(targetWord, attempt);
+    };
+
     return (
         <>
-            <Board
-                attempts=
-				{[
-                    { word: "ARBOL", colors: [2, 1, 0, 0, 1] }, // aqui se mete la lista de listas xd
-					// { word: "intento2", colors: [x,x,x,x,x]},
-					// etc... si se pasa solo una lista dentro de toda la lista, el tablero funciona 
-					// correctamente, y pondra las casillas en blanco
-
-					// falta la logica para pintar el otro tablero por debajo
-                ]}
-            />	
+            <Board checkWord={checkWord} wordLength={targetWord.length} />
             <Keyboard />
         </>
     );

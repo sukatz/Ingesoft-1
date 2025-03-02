@@ -53,6 +53,12 @@
     background-color: #222;
 }
 
+.cursor {
+    border: 2px solid #4040c9;
+    box-shadow: 0 0 5px #4040c9, 0 0 5px #4040c9, 0 0 5px #4040c9;
+    
+}
+
 .gray {
     background-color: #46464d;
     box-shadow: 0 0 3px #46464d, 0 0 3px #46464d, 0 0 3px #46464d;
