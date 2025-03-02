@@ -1,0 +1,79 @@
+.wordleContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #222;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.board {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Eliminamos completamente el gap */
+    padding: 10px;
+    background-color: #222;
+    border-radius: 8px;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px; /* Mantenemos el espacio horizontal entre celdas */
+    margin-bottom: 5px; /* Espacio muy pequeño entre filas */
+}
+
+/* Quitamos el margen de la última fila */
+.row:last-child {
+    margin-bottom: 0;
+}
+
+.cell {
+    width: 75px;  
+    height: 75px; 
+    border: 2px solid #bbb;
+    box-shadow: inset 0 0 10px #aaa;
+    border-radius: 10%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: white;
+    box-sizing: border-box;
+    margin: 0; /* Eliminamos cualquier margen en las celdas */
+    padding: 0; /* Eliminamos cualquier padding en las celdas */
+    background-color: #222;
+}
+
+.gray {
+    background-color: #46464d;
+    box-shadow: 0 0 3px #46464d, 0 0 3px #46464d, 0 0 3px #46464d;
+    border: none;
+}
+
+.yellow {
+
+    background-color: #fa9643;
+    box-shadow: 0 0 7px #d4660c, 0 0 7px #d4660c, 0 0 7px #d4660c;
+    border: none;
+}
+
+.green {
+    
+    background-color: #51fc8f;
+    box-shadow: 0 0 7px #40c973, 0 0 7px #40c973, 0 0 7px #40c973;
+    border: none;
+}
+
+.empty {
+    background-color: #222;
+    color: white;
+}

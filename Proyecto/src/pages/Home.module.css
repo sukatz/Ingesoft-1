@@ -1,4 +1,4 @@
-div {
+.mainContainer {  /* Usa un nombre de clase específico */
     display: flex;
     flex-direction: column;
     justify-content: center;

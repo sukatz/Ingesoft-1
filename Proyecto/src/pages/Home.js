@@ -63,7 +63,7 @@ function Home() {
     }, [matchId, navigate]);
 
     return (
-        <div className={styles.container}>
+        <div className={styles.mainContainer}>
             <img className={styles.logo} src={logo} alt="Logo" />
 
             <SearchForm
