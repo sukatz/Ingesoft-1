@@ -7,7 +7,7 @@ import {
     doc,
     serverTimestamp
 } from 'firebase/firestore';
-
+import {getRandomWord} from './GetRandomWord';
 import { db } from './config';
 
 export const checkForMatch = async (userNickname) => {
@@ -81,11 +81,13 @@ export const addUserToMatch = async (userNickname) => {
             }
 
             const newMatchRef = doc(matchCollection);
+		const secretWord = await getRandomWord();
             transaction.set(newMatchRef, {
                 player_1: userNickname,
                 player_2: '',
                 match_status: 'waiting',
-                elapsed_time: serverTimestamp()
+                elapsed_time: serverTimestamp(),
+		secret_word: secretWord
             });
 
             console.log('Nueva partida creada:', newMatchRef.id);
