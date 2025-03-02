@@ -1,33 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styles from './Board.module.css';
 
-const Board = ({ checkWord, wordLength }) => {
+const Board = ({ checkWord, enemyColors, wordLength }) => {
     const maxAttempts = 6;
     const [currentAttempt, setCurrentAttempt] = useState(0);
     const [inputWords, setInputWords] = useState(Array(maxAttempts).fill(""));
     const [cursorPosition, setCursorPosition] = useState(0);
     const [isWordComplete, setIsWordComplete] = useState(false);
     const [isEditing, setIsEditing] = useState(true);
-    const [attempts, setAttempts] = useState([]);
+    const [playerAttempts, setPlayerAttempts] = useState([]);
 
-    // Handle cell click to position cursor
-    const handleCellClick = (rowIndex, colIndex) => {
-        if (rowIndex === currentAttempt) {
-            setCursorPosition(colIndex);
-            setIsWordComplete(false);
-            setIsEditing(true);
-        }
-    };
-
-    // Handle keyboard input
     const handleKeyPress = (event) => {
         const rowIndex = currentAttempt;
-        
         if (rowIndex >= maxAttempts) return;
-        
+
         let newWords = [...inputWords];
         let currentWord = newWords[rowIndex] || "";
-        
+
         while (currentWord.length < wordLength) {
             currentWord += " ";
         }
@@ -40,21 +29,21 @@ const Board = ({ checkWord, wordLength }) => {
                 setCursorPosition(wordLength - 1);
                 setIsEditing(true);
             } else if (cursorPosition > 0) {
-                const newWord = 
-                    currentWord.slice(0, cursorPosition - 1) + 
-                    " " + 
+                const newWord =
+                    currentWord.slice(0, cursorPosition - 1) +
+                    " " +
                     currentWord.slice(cursorPosition);
                 newWords[rowIndex] = newWord;
                 setCursorPosition(prev => prev - 1);
                 setIsEditing(true);
             }
         } else if (/^[a-zA-Z]$/.test(event.key) && cursorPosition < wordLength && (!isWordComplete)) {
-            const newWord = 
-                currentWord.slice(0, cursorPosition) + 
-                event.key.toUpperCase() + 
+            const newWord =
+                currentWord.slice(0, cursorPosition) +
+                event.key.toUpperCase() +
                 currentWord.slice(cursorPosition + 1);
             newWords[rowIndex] = newWord;
-            
+
             if (cursorPosition === wordLength - 1) {
                 setIsWordComplete(true);
                 setIsEditing(false);
@@ -65,43 +54,85 @@ const Board = ({ checkWord, wordLength }) => {
             const trimmedWord = currentWord.trim();
             if (trimmedWord.length === wordLength) {
                 const colors = checkWord(trimmedWord);
-                const newAttempts = [...attempts, {
+                const newAttempts = [...playerAttempts, {
                     word: trimmedWord,
                     colors: colors
                 }];
-                
-                setAttempts(newAttempts);
+
+                setPlayerAttempts(newAttempts);
                 setCurrentAttempt(prev => Math.min(prev + 1, maxAttempts));
                 setCursorPosition(0);
                 setIsWordComplete(false);
                 setIsEditing(true);
             }
         }
-        
+
         setInputWords(newWords);
     };
 
-    const getBackgroundClass = (code) => {
-        switch (code) {
-            case 0: return styles.gray;
-            case 1: return styles.yellow;
-            case 2: return styles.green;
-            default: return styles.empty;
+    // En el componente Board, modifica la función getBackgroundClass o renderRow
+
+    // Modifica la función getBackgroundClass para manejar prioridades
+    const getBackgroundClass = (playerCode, enemyCode) => {
+        // Si existe un código del jugador (incluso si es 0/gris), usar ese
+        if (playerCode !== null && playerCode !== undefined) {
+            switch (playerCode) {
+                case 0: return styles.gray;
+                case 1: return styles.yellow;
+                case 2: return styles.green;
+                default: return styles.empty;
+            }
         }
+        
+        // Si no hay código del jugador, usar el del enemigo
+        if (enemyCode !== null && enemyCode !== undefined) {
+            switch (enemyCode) {
+                case 0: return styles.enemyGray; // Puedes usar clases distintas para el enemigo
+                case 1: return styles.enemyYellow;
+                case 2: return styles.enemyGreen;
+                default: return styles.empty;
+            }
+        }
+        
+        // Si no hay ningún código, celda vacía
+        return styles.empty;
     };
+    
 
     const renderRow = (rowIndex) => {
-        if (attempts[rowIndex]) {
-            const { word, colors } = attempts[rowIndex];
+        // Verifica si el jugador ha intentado esta fila
+        if (playerAttempts[rowIndex]) {
+            const { word, colors: playerColors } = playerAttempts[rowIndex];
+            // Obtiene los colores del enemigo para esta fila
+            const enemyColorsForRow = enemyColors ? enemyColors[rowIndex] : null;
+            
             return (
                 <div className={styles.row} key={`row-${rowIndex}`}>
                     {Array.from({ length: wordLength }).map((_, colIndex) => {
                         const letter = word[colIndex] || '';
-                        const status = colors[colIndex];
+                        const playerCode = playerColors[colIndex];
+    
+                        // Determina qué clase CSS aplicar basado en la prioridad
+                        let colorClass = styles.empty;
+    
+                        // SIEMPRE prioriza el color del jugador si existe (incluso si es 0 - gris)
+                        if (playerCode === 0 || playerCode === 1 || playerCode === 2) {
+                            if (playerCode === 0) colorClass = styles.gray;
+                            else if (playerCode === 1) colorClass = styles.yellow;
+                            else if (playerCode === 2) colorClass = styles.green;
+                        } 
+                        // Solo usa el color del enemigo si no hay un color de jugador válido
+                        else if (enemyColorsForRow && enemyColorsForRow[colIndex] !== null) {
+                            const enemyCode = enemyColorsForRow[colIndex];
+                            if (enemyCode === 0) colorClass = styles.enemyGray;
+                            else if (enemyCode === 1) colorClass = styles.enemyYellow;
+                            else if (enemyCode === 2) colorClass = styles.enemyGreen;
+                        }
+    
                         return (
                             <div
                                 key={`cell-${rowIndex}-${colIndex}`}
-                                className={`${styles.cell} ${getBackgroundClass(status)}`}
+                                className={`${styles.cell} ${colorClass}`}
                             >
                                 {letter}
                             </div>
@@ -110,19 +141,21 @@ const Board = ({ checkWord, wordLength }) => {
                 </div>
             );
         }
-        
+    
+        // Renderiza las filas vacías o en proceso de escritura
         return (
             <div className={styles.row} key={`row-${rowIndex}`}>
                 {Array.from({ length: wordLength }).map((_, colIndex) => {
                     const letter = inputWords[rowIndex][colIndex] || '';
                     const isActive = rowIndex === currentAttempt;
                     const isCursor = isActive && colIndex === cursorPosition && isEditing;
-
+                    const enemyStatus = enemyColors[rowIndex]?.[colIndex];
+    
                     return (
                         <div
                             key={`cell-${rowIndex}-${colIndex}`}
-                            className={`${styles.cell} ${isActive ? styles.active : ''} ${isCursor ? styles.cursor : ''}`}
-                            onClick={() => handleCellClick(rowIndex, colIndex)}
+                            className={`${styles.cell} ${isActive ? styles.active : ''} ${isCursor ? styles.cursor : ''} ${getBackgroundClass(null, enemyStatus)}`}
+                            onClick={() => setCursorPosition(colIndex)}
                         >
                             {letter}
                         </div>
@@ -131,13 +164,7 @@ const Board = ({ checkWord, wordLength }) => {
             </div>
         );
     };
-
-    useEffect(() => {
-        const container = document.querySelector(`.${styles.wordleContainer}`);
-        if (container) {
-            container.focus();
-        }
-    }, []);
+    
 
     return (
         <div 

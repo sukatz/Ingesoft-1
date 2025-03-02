@@ -26,7 +26,7 @@ function verifyWord(targetWord, attempt) {
             }
         }
     }
-    
+    console.log(verification)
     return verification;
 }
 
