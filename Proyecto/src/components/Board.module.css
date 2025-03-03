@@ -4,6 +4,7 @@
     align-items: center;
     padding: 20px;
     background-color: #222;
+    outline: none; /* Eliminamos el contorno al recibir foco */
 }
 
 .title {
@@ -16,7 +17,7 @@
 .board {
     display: flex;
     flex-direction: column;
-    gap: 5px; /* Eliminamos completamente el gap */
+    gap: 5px;
     padding: 10px;
     background-color: #222;
     border-radius: 8px;
@@ -25,8 +26,8 @@
 .row {
     display: flex;
     flex-direction: row;
-    gap: 10px; /* Mantenemos el espacio horizontal entre celdas */
-    margin-bottom: 5px; /* Espacio muy pequeño entre filas */
+    gap: 10px;
+    margin-bottom: 5px;
 }
 
 /* Quitamos el margen de la última fila */
@@ -48,15 +49,15 @@
     text-transform: uppercase;
     color: white;
     box-sizing: border-box;
-    margin: 0; /* Eliminamos cualquier margen en las celdas */
-    padding: 0; /* Eliminamos cualquier padding en las celdas */
+    margin: 0;
+    padding: 0;
     background-color: #222;
+    transition: border-color 0.2s, box-shadow 0.2s; /* Suaviza el cambio de color del borde */
 }
 
 .cursor {
-    border: 2px solid #4040c9;
-    box-shadow: 0 0 5px #4040c9, 0 0 5px #4040c9, 0 0 5px #4040c9;
-    
+    border: 2px solid #4040c9 !important; /* Usamos !important para asegurarnos que siempre se aplique */
+    box-shadow: 0 0 5px #4040c9, 0 0 5px #4040c9, 0 0 5px #4040c9 !important;
 }
 
 .gray {
@@ -66,46 +67,43 @@
 }
 
 .yellow {
-
     background-color: #fa9643;
     box-shadow: 0 0 7px #d4660c, 0 0 7px #d4660c, 0 0 7px #d4660c;
     border: none;
 }
 
 .green {
-    
     background-color: #51fc8f;
     box-shadow: 0 0 7px #40c973, 0 0 7px #40c973, 0 0 7px #40c973;
     border: none;
 }
 
-
-
-
 .enemyGray {
-    background-color: #2a2929; /* Gris con 50% de transparencia */
+    background-color: #2a2929;
     border: 2px solid #aaa;
 }
 
 .enemyYellow {
-    background-color: #27211c; /* Amarillo con 50% de transparencia */
+    background-color: #27211c;
     border: 2px solid #aaa;
 }
 
 .enemyGreen {
-    background-color: #1d2721; /* Verde con 50% de transparencia */
+    background-color: #1d2721;
     border: 2px solid #aaa;
 }
-
-
 
 .empty {
     background-color: #222;
     color: white;
 }
 
-.cursor {
-    border: 2px solid #4040c9;
-    box-shadow: 0 0 5px #4040c9, 0 0 5px #4040c9, 0 0 5px #4040c9;
-    
+/* Aseguramos que el foco no muestre contornos visibles */
+*:focus {
+    outline: none;
+}
+
+/* Asegurarse de que los estilos de cursor tengan mayor prioridad */
+.cell.cursor {
+    z-index: 1;
 }

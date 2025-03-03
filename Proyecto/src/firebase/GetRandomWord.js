@@ -16,3 +16,4 @@ export const getRandomWord = async (gameMode = "NORMAL") => {
     }
 };
 
+export default getRandomWord

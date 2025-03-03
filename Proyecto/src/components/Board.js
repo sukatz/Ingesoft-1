@@ -1,83 +1,130 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Board.module.css';
 
-const Board = ({ checkWord, enemyColors, wordLength }) => {
+const Board = ({ checkWord, enemyColors, wordLength, setPlayerAttempts, setBoardActions }) => {
     const maxAttempts = 6;
     const [currentAttempt, setCurrentAttempt] = useState(0);
     const [inputWords, setInputWords] = useState(Array(maxAttempts).fill(""));
     const [cursorPosition, setCursorPosition] = useState(0);
     const [isWordComplete, setIsWordComplete] = useState(false);
     const [isEditing, setIsEditing] = useState(true);
-    const [playerAttempts, setPlayerAttempts] = useState([]);
+    const [playerAttempts, setPlayerAttemptsLocal] = useState([]);
+    // Agregar un estado explícito para la celda seleccionada
+    const [selectedCell, setSelectedCell] = useState({ row: 0, col: 0 });
 
-    // 🔹 Ref para el contenedor principal
     const boardRef = useRef(null);
 
-    // 🔹 Enfocar automáticamente el tablero al cargar
+    // Exponer las funciones para que el teclado pueda usarlas
+    useEffect(() => {
+        if (setBoardActions) {
+            setBoardActions({
+                addLetter: (letter) => handleLetterInput(letter),
+                backspace: () => handleBackspace(),
+                enter: () => handleEnter()
+            });
+        }
+    }, [inputWords, cursorPosition, isWordComplete, currentAttempt]);
+
     useEffect(() => {
         if (boardRef.current) {
             boardRef.current.focus();
         }
-    }, []);
+        // Actualizar selectedCell cuando cambia el currentAttempt o cursorPosition
+        setSelectedCell({ row: currentAttempt, col: cursorPosition });
+    }, [currentAttempt, cursorPosition]);
 
-    const handleKeyPress = (event) => {
-        const rowIndex = currentAttempt;
-        if (rowIndex >= maxAttempts) return;
+    // Funciones para manejar el input
+    const handleLetterInput = (letter) => {
+        if (currentAttempt >= maxAttempts) return;
+        if (isWordComplete) return;
+        if (cursorPosition >= wordLength) return;
 
         let newWords = [...inputWords];
-        let currentWord = newWords[rowIndex] || "";
+        let currentWord = newWords[currentAttempt] || "";
 
         while (currentWord.length < wordLength) {
             currentWord += " ";
         }
-        newWords[rowIndex] = currentWord;
 
-        if (event.key === 'Backspace') {
-            if (isWordComplete) {
-                newWords[rowIndex] = currentWord.slice(0, wordLength - 1) + " ";
-                setIsWordComplete(false);
-                setCursorPosition(wordLength - 1);
-                setIsEditing(true);
-            } else if (cursorPosition > 0) {
-                const newWord =
-                    currentWord.slice(0, cursorPosition - 1) +
-                    " " +
-                    currentWord.slice(cursorPosition);
-                newWords[rowIndex] = newWord;
-                setCursorPosition(prev => prev - 1);
-                setIsEditing(true);
-            }
-        } else if (/^[a-zA-Z]$/.test(event.key) && cursorPosition < wordLength && (!isWordComplete)) {
+        const newWord =
+            currentWord.slice(0, cursorPosition) +
+            letter.toUpperCase() +
+            currentWord.slice(cursorPosition + 1);
+
+        newWords[currentAttempt] = newWord;
+        setInputWords(newWords);
+
+        if (cursorPosition === wordLength - 1) {
+            setIsWordComplete(true);
+            setIsEditing(false);
+        } else {
+            setCursorPosition(prev => prev + 1);
+        }
+    };
+
+    const handleBackspace = () => {
+        if (currentAttempt >= maxAttempts) return;
+
+        let newWords = [...inputWords];
+        let currentWord = newWords[currentAttempt] || "";
+
+        while (currentWord.length < wordLength) {
+            currentWord += " ";
+        }
+
+        if (isWordComplete) {
+            newWords[currentAttempt] = currentWord.slice(0, wordLength - 1) + " ";
+            setIsWordComplete(false);
+            setCursorPosition(wordLength - 1);
+            setIsEditing(true);
+        } else if (cursorPosition > 0) {
             const newWord =
-                currentWord.slice(0, cursorPosition) +
-                event.key.toUpperCase() +
-                currentWord.slice(cursorPosition + 1);
-            newWords[rowIndex] = newWord;
-
-            if (cursorPosition === wordLength - 1) {
-                setIsWordComplete(true);
-                setIsEditing(false);
-            } else {
-                setCursorPosition(prev => prev + 1);
-            }
-        } else if (event.key === 'Enter') {
-            const trimmedWord = currentWord.trim();
-            if (trimmedWord.length === wordLength) {
-                const colors = checkWord(trimmedWord);
-                const newAttempts = [...playerAttempts, {
-                    word: trimmedWord,
-                    colors: colors
-                }];
-
-                setPlayerAttempts(newAttempts);
-                setCurrentAttempt(prev => Math.min(prev + 1, maxAttempts));
-                setCursorPosition(0);
-                setIsWordComplete(false);
-                setIsEditing(true);
-            }
+                currentWord.slice(0, cursorPosition - 1) +
+                " " +
+                currentWord.slice(cursorPosition);
+            newWords[currentAttempt] = newWord;
+            setCursorPosition(prev => prev - 1);
+            setIsEditing(true);
         }
 
         setInputWords(newWords);
+    };
+
+    const handleEnter = () => {
+        if (currentAttempt >= maxAttempts) return;
+
+        const currentWord = inputWords[currentAttempt] || "";
+        const trimmedWord = currentWord.trim();
+        
+        if (trimmedWord.length === wordLength) {
+            const colors = checkWord(trimmedWord);
+            const newAttempts = [...playerAttempts, {
+                word: trimmedWord,
+                colors: colors
+            }];
+
+            setPlayerAttemptsLocal(newAttempts);
+            setPlayerAttempts(newAttempts);
+
+            setCurrentAttempt(prev => Math.min(prev + 1, maxAttempts));
+            setCursorPosition(0);
+            setIsWordComplete(false);
+            setIsEditing(true);
+        }
+    };
+
+    const handleKeyPress = (event) => {
+        if (/^[a-zA-Z]$/.test(event.key)) {
+            handleLetterInput(event.key);
+        } else if (event.key === 'Backspace') {
+            handleBackspace();
+        } else if (event.key === 'Enter') {
+            handleEnter();
+        } else if (event.key === 'ArrowLeft' && cursorPosition > 0) {
+            setCursorPosition(prev => prev - 1);
+        } else if (event.key === 'ArrowRight' && cursorPosition < wordLength - 1) {
+            setCursorPosition(prev => prev + 1);
+        }
     };
 
     const getBackgroundClass = (playerCode, enemyCode) => {
@@ -142,14 +189,30 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
                 {Array.from({ length: wordLength }).map((_, colIndex) => {
                     const letter = inputWords[rowIndex][colIndex] || '';
                     const isActive = rowIndex === currentAttempt;
-                    const isCursor = isActive && colIndex === cursorPosition && isEditing;
+                    // Usar el estado selectedCell para determinar si la celda está seleccionada
+                    const isSelected = isActive && selectedCell.row === rowIndex && selectedCell.col === colIndex;
                     const enemyStatus = enemyColors[rowIndex]?.[colIndex];
 
                     return (
                         <div
                             key={`cell-${rowIndex}-${colIndex}`}
-                            className={`${styles.cell} ${isActive ? styles.active : ''} ${isCursor ? styles.cursor : ''} ${getBackgroundClass(null, enemyStatus)}`}
-                            onClick={() => setCursorPosition(colIndex)}
+                            className={`
+                                ${styles.cell} 
+                                ${isActive ? styles.active : ''} 
+                                ${isSelected ? styles.cursor : ''} 
+                                ${getBackgroundClass(null, enemyStatus)}
+                            `}
+                            onClick={() => {
+                                if (isActive) {
+                                    setCursorPosition(colIndex);
+                                    setSelectedCell({ row: rowIndex, col: colIndex });
+                                    setIsEditing(true);
+                                    // Enfocamos el contenedor para capturar eventos de teclado
+                                    if (boardRef.current) {
+                                        boardRef.current.focus();
+                                    }
+                                }
+                            }}
                         >
                             {letter}
                         </div>
@@ -159,12 +222,31 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
         );
     };
 
+    // Prevenir comportamiento predeterminado para evitar líneas no deseadas
+    const handleFocus = () => {
+        // Aseguramos que cuando el tablero recibe el foco, la celda seleccionada mantenga su estilo
+        setIsEditing(true);
+    };
+
+    const handleBlur = () => {
+        // Opcional: podrías decidir qué hacer cuando el tablero pierde el foco
+        // Por ejemplo, podrías mantener la selección visual
+    };
+
+    const handleMouseDown = (e) => {
+        // Prevenir el comportamiento predeterminado de selección
+        e.preventDefault();
+    };
+
     return (
         <div 
-            ref={boardRef} // 🔹 Asignamos el ref al contenedor
+            ref={boardRef} 
             className={styles.wordleContainer} 
             tabIndex={0} 
             onKeyDown={handleKeyPress}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onMouseDown={handleMouseDown}
         >
             <h2 className={styles.title}>¡Adivina la palabra!</h2>
             <div className={styles.board}>
