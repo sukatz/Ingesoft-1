@@ -11,7 +11,7 @@
 
 .logo {
     position: absolute;
-    top: 10%; /* Cambiado de píxeles a porcentaje para mejor responsividad */
+    top: 20%; /* Cambiado de píxeles a porcentaje para mejor responsividad */
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
