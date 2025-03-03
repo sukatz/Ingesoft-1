@@ -11,12 +11,12 @@
 
 .logo {
     position: absolute;
-    top: 20%; /* Cambiado de píxeles a porcentaje para mejor responsividad */
+    top: 22%; /* Cambiado de píxeles a porcentaje para mejor responsividad */
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
     width: 80%; /* Cambiado de píxeles a porcentaje */
-    max-width: 550px; /* Máximo ancho para evitar que el logo sea demasiado grande */
+    max-width: 800px; /* Máximo ancho para evitar que el logo sea demasiado grande */
 }
 
 .form {
