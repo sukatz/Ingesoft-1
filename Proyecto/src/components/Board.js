@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Board.module.css';
 
-const Board = ({ checkWord, enemyColors, wordLength }) => {
+const Board = ({ checkWord, enemyColors, wordLength, onAttempt }) => {
     const maxAttempts = 6;
     const [currentAttempt, setCurrentAttempt] = useState(0);
     const [inputWords, setInputWords] = useState(Array(maxAttempts).fill(""));
@@ -70,6 +70,11 @@ const Board = ({ checkWord, enemyColors, wordLength }) => {
                 }];
 
                 setPlayerAttempts(newAttempts);
+
+                if (onAttempt) {
+                    onAttempt(colors, currentAttempt);
+                }
+
                 setCurrentAttempt(prev => Math.min(prev + 1, maxAttempts));
                 setCursorPosition(0);
                 setIsWordComplete(false);

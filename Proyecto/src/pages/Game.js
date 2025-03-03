@@ -13,31 +13,41 @@ function Game() {
         return verifyWord(targetWord, attempt);
     };
 
-    useEffect(() => {
-        const receiveEnemyData = (newColors, attemptIndex) => {
-            setEnemyColors(prevColors => {
-                const updatedColors = [...prevColors];
-                updatedColors[attemptIndex] = newColors;
-                return updatedColors;
-            });
-        };
+    const receiveEnemyData = (newColors, attemptIndex) => {
+        setEnemyColors(prevColors => {
+            const updatedColors = [...prevColors];
+            updatedColors[attemptIndex] = newColors;
+            return updatedColors;
+        });
+    };
 
-        // Simulación de intentos del enemigo
-        let attemptIndex = 0;
-        const interval = setInterval(() => {
-            if (attemptIndex < 6) {
-                const newColors = [
-                    Math.floor(Math.random() * 5), 
-                    Math.floor(Math.random() * 5), 
-                    Math.floor(Math.random() * 5)
-                ]; // Simulación de colores
-                receiveEnemyData(newColors, attemptIndex);
-                attemptIndex++;
-            }
-        }, 3000);
+    const handlePlayerAttempt = (colors, attemptIndex) => {
+        console.log("Colores recibidos:", colors, "Intento:", attemptIndex);
 
-        return () => clearInterval(interval);
-    }, []);
+        if (attemptIndex < 6) {
+            receiveEnemyData(colors, attemptIndex);
+            attemptIndex++;
+        }
+    };
+
+    // useEffect((colors, attemptIndex) => {
+    //     const receiveEnemyData = (newColors, attemptIndex) => {
+    //         setEnemyColors(prevColors => {
+    //             const updatedColors = [...prevColors];
+    //             updatedColors[attemptIndex] = newColors;
+    //             return updatedColors;
+    //         });
+    //     };
+
+    //     const interval = setInterval(() => {
+    //         if (attemptIndex < 6) {
+    //             receiveEnemyData(colors, attemptIndex);
+    //             attemptIndex++;
+    //         }
+    //     }, 3000);
+
+    //     return () => clearInterval(interval);
+    // }, []);
 
     return (
         <>
@@ -45,6 +55,7 @@ function Game() {
                 checkWord={checkWord} 
                 enemyColors={enemyColors}  // 🔹 Enviamos la MATRIZ de colores
                 wordLength={targetWord.length} 
+                onAttempt={handlePlayerAttempt} // Nuevo prop
             />
             <Keyboard />
         </>
