@@ -18,8 +18,15 @@ function Game() {
     // Referencia de las funciones del Board para el teclado
     const [boardActions, setBoardActions] = useState(null);
 
-useEffect(() => {
+	useEffect(() => {
     const fetchWordFromDB = async () => {
+        // Si ya tenemos la palabra en sessionStorage, no consultamos Firebase
+        if (sessionStorage.getItem(`word_${matchId}`)) {
+            setTargetWord(sessionStorage.getItem(`word_${matchId}`));
+            setLoading(false);
+            return;
+        }
+
         try {
             const matchRef = doc(db, "match", matchId);
             const matchSnap = await getDoc(matchRef);
@@ -29,7 +36,8 @@ useEffect(() => {
                 const newTargetWord = matchData.secret_word.toUpperCase(); 
                 setTargetWord(newTargetWord);
                 sessionStorage.setItem(`word_${matchId}`, newTargetWord); 
-                setEnemyColors(Array(6).fill(Array(newTargetWord.length).fill(null))); // 
+                setEnemyColors(Array(6).fill(Array(newTargetWord.length).fill(null)));
+            } else {
                 console.error("La partida no existe.");
             }
         } catch (error) {
@@ -40,6 +48,8 @@ useEffect(() => {
 
     fetchWordFromDB();
 }, [matchId]); 
+
+
 
 
     useEffect(() => {
