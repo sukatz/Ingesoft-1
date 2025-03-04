@@ -2,27 +2,45 @@ import Board from '../components/Board';
 import Keyboard from "../components/Keyboard";
 import { useState, useEffect } from 'react';
 import verifyWord from "../firebase/gameLogic"; 
-import getRandomWord from "../firebase/GetRandomWord";
+import { useParams } from 'react-router-dom';  
+import { doc, getDoc } from 'firebase/firestore';  
+import { db } from '../firebase/config';  
 
 function Game() {
-    const [targetWord, setTargetWord] = useState(null);
+    const { matchId } = useParams(); 
+    const [targetWord, setTargetWord] = useState(() => {
+        return sessionStorage.getItem(`word_${matchId}`) || null;
+    });
+
     const [enemyColors, setEnemyColors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [playerAttempts, setPlayerAttempts] = useState([]); 
     // Referencia de las funciones del Board para el teclado
     const [boardActions, setBoardActions] = useState(null);
 
-    useEffect(() => {
-        const fetchWord = async () => {
-            const randomWord = await getRandomWord();
-            if (randomWord) {
-                setTargetWord(randomWord.toUpperCase());
-                setEnemyColors(Array(6).fill(Array(randomWord.length).fill(null))); 
+useEffect(() => {
+    const fetchWordFromDB = async () => {
+        try {
+            const matchRef = doc(db, "match", matchId);
+            const matchSnap = await getDoc(matchRef);
+
+            if (matchSnap.exists()) {
+                const matchData = matchSnap.data();
+                const newTargetWord = matchData.secret_word.toUpperCase(); 
+                setTargetWord(newTargetWord);
+                sessionStorage.setItem(`word_${matchId}`, newTargetWord); 
+                setEnemyColors(Array(6).fill(Array(newTargetWord.length).fill(null))); // 
+                console.error("La partida no existe.");
             }
-            setLoading(false);
-        };
-        fetchWord();
-    }, []);
+        } catch (error) {
+            console.error("Error al obtener la palabra:", error);
+        }
+        setLoading(false);
+    };
+
+    fetchWordFromDB();
+}, [matchId]); 
+
 
     useEffect(() => {
         if (!targetWord) return;
